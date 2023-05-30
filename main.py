@@ -6,7 +6,7 @@ from PIL import Image, ImageTk
 from fuzzywuzzy import fuzz
 
 # plant_families = ['Asteraceae', 'Orchidaceae', 'Dubs']
-plant_families = ['Asteraceae', 'Adoxaceae', 'Berberidaceae', 'Plantaginaceae', 'Apiaceae', 'Iridaceae', 'Polemoniaceae', 'Rosaceae', 'Onagraceae', 'Aceraceae', 'Hamamelidaceae', 'Oleaceae', 'Brassicaceae', 'Lauraceae', 'Araceae', 'Fagaceae', 'Salicaceae', 'Violaceae', 'Saxifragaceae', 'Fabaceae', 'Caryophyllaceae', 'Cactaceae', 'Montiaceae', 'Ericaceae', 'Cornaceae', "Dubs", 'Solanaceae', 'Hydrophyllaceae', 'Boraginaceae', 'Juncaceae', 'Cyperaceae', 'Poaceae', 'Typhaceae', 'Orchidaceae', 'Liliaceae', 'Magnoliaceae', 'Betulaceae', 'Ranunculaceae', 'Lamiaceae', 'Caprifoliaceae', 'Dubs']
+plant_families = ['Asteraceae', 'Adoxaceae', 'Berberidaceae', 'Plantaginaceae', 'Apiaceae', 'Iridaceae', 'Polemoniaceae', 'Rosaceae', 'Onagraceae', 'Aceraceae', 'Hamamelidaceae', 'Oleaceae', 'Brassicaceae', 'Lauraceae', 'Araceae', 'Fagaceae', 'Salicaceae', 'Violaceae', 'Saxifragaceae', 'Fabaceae', 'Caryophyllaceae', 'Cactaceae', 'Montiaceae', 'Ericaceae', 'Cornaceae', "Dubs", 'Solanaceae', 'Hydrophyllaceae', 'Boraginaceae', 'Juncaceae', 'Cyperaceae', 'Poaceae', 'Typhaceae', 'Orchidaceae', 'Liliaceae', 'Magnoliaceae', 'Betulaceae', 'Ranunculaceae', 'Lamiaceae', 'Caprifoliaceae']
 
 random.shuffle(plant_families)
 
@@ -31,13 +31,14 @@ class App:
         if self.current_index < len(plant_families):
             self.image_frame = Frame(self.master)
             self.images = [ImageTk.PhotoImage(Image.open(os.path.join('img', plant_families[self.current_index], f'Image_{i+1}.jpg')).resize((400,350))) for i in range(4)]
+            random.shuffle(self.images)
             for i, img in enumerate(self.images):
                 label = tk.Label(self.image_frame, image=img)
                 label.grid(row=i//2, column=i%2)
 
             self.image_frame.pack()
 
-            self.answer_entry = tk.Entry(self.master)
+            self.answer_entry = tk.Entry(self.master, font=("arial", 24), fg="white", bg="black")
             self.answer_entry.pack()
             self.answer_entry.focus_set()
             self.answer_entry.bind("<Return>", self.check_answer)
@@ -55,7 +56,6 @@ class App:
 
         elif fuzz.ratio(answer.lower(), correct_answer.lower()) >= 80:
             messagebox.showinfo("Close", "You were close!")
-            self.incorrect_answers.append((answer, correct_answer))
         else:
             # plant_families.append(correct_answer)
             messagebox.showinfo("Incorrect", f"You got it wrong! The correct answer is {correct_answer}")
@@ -64,25 +64,28 @@ class App:
             self.create_widgets()
 
     def show_summary(self):
-        summary_label = tk.Label(self.master, text="Congratulations, you've finished the quiz!")
+        summary_label = tk.Label(self.master, text="Congratulations, you've finished the quiz!", font=("arial", 24))
         summary_label.pack()
 
         if self.incorrect_answers:
-            incorrect_label = tk.Label(self.master, text="You had trouble with the following plant families:")
+            incorrect_label = tk.Label(self.master, text="You had trouble with the following plant families:", font=("arial", 20))
             incorrect_label.pack()
 
             incorrect_flowers = [flower[1] for flower in self.incorrect_answers]
             unique_incorrect_answers = set(incorrect_flowers)
             error_rate = len(unique_incorrect_answers) / len(plant_families) * 100
 
-            for answer, correct_answer in unique_incorrect_answers:
-                family_label = tk.Label(self.master, text=f"Your answer: {answer} | Correct answer: {correct_answer}")
+            for answer, correct_answer in self.incorrect_answers:
+                if len(answer) < 1 or answer == "idk":
+                    family_label = tk.Label(self.master, text=f"You didn't know: {correct_answer}")
+                else:
+                    family_label = tk.Label(self.master, text=f"Your answer: {answer} | Correct answer: {correct_answer}")
                 family_label.pack()
 
-            error_rate_label = tk.Label(self.master, text=f"Error rate: {error_rate:.2f}%")
+            error_rate_label = tk.Label(self.master, text=f"Accuracy: {100 - error_rate:.2f}%     :D", font=("arial", 20))
             error_rate_label.pack()
         else:
-            perfect_label = tk.Label(self.master, text="You got all the plant families correct, great job!")
+            perfect_label = tk.Label(self.master, text="You got all the plant families correct, great job!", font=("arial", 24))
             perfect_label.pack()
 
 root = tk.Tk()
